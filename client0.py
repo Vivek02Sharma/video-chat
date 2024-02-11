@@ -3,7 +3,6 @@ import socket,cv2, pickle,struct
 video = cv2.VideoCapture(0)
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# HOST_IP = '192.168.43.203'
 HOST_IP = '0.tcp.in.ngrok.io'
 PORT = 17634
 client.connect((HOST_IP,PORT))
