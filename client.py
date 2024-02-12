@@ -19,6 +19,7 @@ while True:
         data = pickle.dumps(frame)
         message = struct.pack("Q", len(data)) + data
         client.sendall(message)
+         cv2.imshow("Your Window", frame)
         
         data = b""
         payload_size = struct.calcsize("Q")
@@ -36,7 +37,7 @@ while True:
         frame_data = data[:msg_size]
         data = data[msg_size:]
         frame = pickle.loads(frame_data)
-        cv2.imshow("Received", frame)
+        cv2.imshow("Other Client Window", frame)
 
         if cv2.waitKey(1) == ord("q"):
             break
