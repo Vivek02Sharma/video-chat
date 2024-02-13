@@ -7,8 +7,8 @@ video = cv2.VideoCapture(0)
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-HOST_IP = '0.tcp.in.ngrok.io'
-PORT = 17344
+HOST_IP = '127.0.0.1'
+PORT = 9999
 client.connect((HOST_IP, PORT))
 
 while True:
