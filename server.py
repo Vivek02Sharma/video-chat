@@ -1,33 +1,48 @@
 import socket
 import threading
 
+# Connection Data
+host = '127.0.0.1'
+port = 9999
+
+# Starting Server
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-HOST_IP = '127.0.0.1'
-print(HOST_IP)
-PORT = 9999
-server.bind((HOST_IP, PORT))
-server.listen(5)
+server.bind((host, port))
+server.listen()
+print(f"Server has started...\nConnect with {host} : {port}")
 
-print("Server has started\n")
+# Lists For Clients
+clients = []
 
-def show_client(client, addr):
-    try:
-        print(f"Client {addr} is Connected")
-        if client:
-            while True:
-                data = client.recv(4 * 1024)
-                if not data:
-                    break
-                client.sendall(data)
-    except Exception as e:
-        print(f"Exception occurred with client {addr}: {e}")
-    finally:
-        print(f"Client {addr} is Disconnected")
-        print(f"Total client connections: {threading.active_count() - 2}\n")
-        client.close()
+# Sending Messages To All Connected Clients
+def broadcast(message):
+    for client in clients:
+        client.send(message)
 
-while True:
-    client, addr = server.accept()
-    thread = threading.Thread(target=show_client, args=(client, addr))
-    thread.start()
-    print(f"Total client connections: {threading.active_count() - 1}\n")
+# Handling Messages From Clients
+def handle(client):
+    while True:
+        try:
+            # Broadcasting Messages
+            message = client.recv(8)
+            broadcast(message)
+        except:
+            # Removing And Closing Clients
+            clients.remove(client)
+            client.close()
+            break
+
+# Receiving / Listening Function
+def receive():
+    while True:
+        # Accept Connection
+        client, address = server.accept()
+        print(f"{str(address)} is connected to server")
+
+        clients.append(client)
+
+        # Start Handling Thread For Client
+        thread = threading.Thread(target=handle, args=(client,))
+        thread.start()
+
+receive()
