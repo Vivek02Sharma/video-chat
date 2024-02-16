@@ -38,7 +38,7 @@ def receive(client_socket):
 
 
 # Function to send video frames to the server
-def write(client):
+def send(client):
         if client:
             while (video.isOpened()):
                 try:
@@ -62,9 +62,9 @@ client.connect(('127.0.0.1', 9999))
 # Starting Threads For Listening And Writing
 receive_thread = threading.Thread(target=receive,args=(client,))
 
-write_thread = threading.Thread(target=write,args=(client,))
+send_thread = threading.Thread(target=send,args=(client,))
 
-write_thread.start()
+send_thread.start()
 receive_thread.start()
 
 
