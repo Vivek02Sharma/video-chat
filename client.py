@@ -4,6 +4,8 @@ import cv2
 import pickle
 import struct
 
+video = cv2.VideoCapture(0)
+
 # Function to receive video frames from the server
 def receive(client_socket):
     try:
@@ -11,7 +13,7 @@ def receive(client_socket):
         payload_size = struct.calcsize("Q")
         while True:
             while len(data) < payload_size:
-                packet = client_socket.recv(8)
+                packet = client_socket.recv(4*1024)
                 if not packet: break
                 data += packet
             packed_msg_size = data[:payload_size]
@@ -19,7 +21,7 @@ def receive(client_socket):
             msg_size = struct.unpack("Q",packed_msg_size)[0]
 
             while len(data) < msg_size:
-                data += client_socket.recv(8)
+                data += client_socket.recv(4*1024)
             frame_data = data[:msg_size]
             data = data[msg_size:]
             frame = pickle.loads(frame_data)
@@ -37,23 +39,22 @@ def receive(client_socket):
 
 # Function to send video frames to the server
 def write(client):
-    try:
-        while True:
-            if client:
-                video = cv2.VideoCapture(0)
-                ret, frame = video.read()
-                frame = cv2.resize(frame, (320, 320))
-                frame = cv2.flip(frame, 1)
-                data = pickle.dumps(frame)
-                client.sendall(data)
-                cv2.imshow("Your Window", frame)
+        if client:
+            while (video.isOpened()):
+                try:
+                    ret, frame = video.read()
+                    frame = cv2.resize(frame, (320, 320))
+                    frame = cv2.flip(frame, 1)
+                    a = pickle.dumps(frame)
+                    message = struct.pack("Q",len(a)) + a
+                    client.sendall(message)
+                    cv2.imshow("Your Window", frame)
 
-                if cv2.waitKey(1) == ord("q"):
+                    if cv2.waitKey(1) == ord("q"):
+                        break
+                except:
+                    print("Video Finished!")
                     break
-
-    except Exception as e:
-        print(f"Error sending video frame: {e}")
-
 # Connecting To Server
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(('127.0.0.1', 9999))
@@ -63,5 +64,7 @@ receive_thread = threading.Thread(target=receive,args=(client,))
 
 write_thread = threading.Thread(target=write,args=(client,))
 
-receive_thread.start()
 write_thread.start()
+receive_thread.start()
+
+
