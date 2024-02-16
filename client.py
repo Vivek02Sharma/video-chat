@@ -4,8 +4,6 @@ import cv2
 import pickle
 import struct
 
-video = cv2.VideoCapture(0)
-
 # Function to receive video frames from the server
 def receive(client_socket):
     try:
