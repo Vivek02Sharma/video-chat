@@ -3,8 +3,8 @@ import threading
 import cv2
 import pickle
 import struct
+import os
 
-video = cv2.VideoCapture(0)
 
 # Function to receive video frames from the server
 def receive(client_socket):
@@ -38,33 +38,42 @@ def receive(client_socket):
 
 
 # Function to send video frames to the server
-def send(client):
-        if client:
-            while (video.isOpened()):
-                try:
-                    ret, frame = video.read()
-                    frame = cv2.resize(frame, (320, 320))
-                    frame = cv2.flip(frame, 1)
-                    a = pickle.dumps(frame)
-                    message = struct.pack("Q",len(a)) + a
-                    client.sendall(message)
-                    cv2.imshow("Your Window", frame)
 
-                    if cv2.waitKey(1) == ord("q"):
-                        break
-                except:
-                    print("Video Finished!")
-                    break
+def send(client, video):
+    try:
+        while(video.isOpened()):
+            ret, frame = video.read()             
+            frame = cv2.resize(frame, (320, 320)) 
+            frame = cv2.flip(frame, 1)            
+                                      
+            # sending data to server              
+            a = pickle.dumps(frame)               
+            message = struct.pack("Q",len(a)) + a 
+            client.sendall(message)               
+            cv2.imshow("Your Window", frame)                                      
+            if cv2.waitKey(1) == ord("q"):        
+                break                             
+    
+        
+    except Exception as err:
+        raise
+
+
+
+
+#os.environ["QT_QPA_PLATFORM"] = "wayland"
+# capturing the video
+video = cv2.VideoCapture(0)
+
 # Connecting To Server
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(('127.0.0.1', 9999))
 
 # Starting Threads For Listening And Writing
-receive_thread = threading.Thread(target=receive,args=(client,))
+threading.Thread(target=send,args=(client, video, )).start()
 
-send_thread = threading.Thread(target=send,args=(client,))
+#threading.Thread(target=receive,args=(client,)).start()
 
-send_thread.start()
-receive_thread.start()
+
 
 
