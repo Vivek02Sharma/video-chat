@@ -15,9 +15,13 @@ print(f"Server has started...\nConnect with {host} : {port}")
 clients = []
 
 # Sending Messages To All Connected Clients
-def broadcast(message):
-    for client in clients:
-        client.send(message)
+def broadcast(message, client):
+    # client is current user which we don't want to broadcast
+    for c in clients:
+        if c != client:
+            c.send(message)
+
+
 
 # Handling Messages From Clients
 def handle(client):
@@ -25,12 +29,12 @@ def handle(client):
         try:
             # Broadcasting Messages
             message = client.recv(8)
-            broadcast(message)
+            print(f"{client} -> " + str(message))
+            if(len(clients) > 1):
+                broadcast(message, client)
         except:
-            # Removing And Closing Clients
-            clients.remove(client)
-            client.close()
-            break
+            # Removing And Closing clients
+            raise
 
 # Receiving / Listening Function
 def receive():
@@ -42,7 +46,7 @@ def receive():
         clients.append(client)
 
         # Start Handling Thread For Client
-        thread = threading.Thread(target=handle, args=(client,))
+        thread = threading.Thread(target=handle, args=(client, ))
         thread.start()
 
 receive()
